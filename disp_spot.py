@@ -14,6 +14,10 @@ from email.mime.multipart import MIMEMultipart
 import ssl
 import smtplib
 from twilio.rest import Client
+import RPi. GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(4, GPIO.IN)
 
 
 parser = argparse.ArgumentParser()
@@ -63,7 +67,7 @@ if __name__ == "__main__":
     #    0    : Response[15:0]
     #    1    : Response[31:16]
     #
-    while True: 
+    while True:
         rsp_vals = rsp["cci_reg"]
         dec_data = base64.b64decode(rsp_vals["data"])
         reg_array = array.array('H', dec_data)
@@ -71,6 +75,8 @@ if __name__ == "__main__":
         	res = 0.1
         else:
         	res = 0.01
+        
+        
 
        # print(f"T-Linear resolution = {res}")
     
@@ -99,7 +105,7 @@ if __name__ == "__main__":
         tempMax = (reg_array[1] / (1/ res)) - 273.15
         tempMin = (reg_array[2] / (1/ res)) - 273.15
         
-        if temp>35:
+        if tempMax>40:
                 print(f"HOT DETECTED!!!")
                 print(f"Temperature Max= {tempMax} C")
                 print(f"Temperature Min= {tempMin} C")
@@ -114,7 +120,7 @@ if __name__ == "__main__":
                 message = client.messages.create(
                     to="+15615631884",
                     from_="+16815324346",
-                    body=f"Hot Surface, check the area!!! = {temp} C")
+                    body=f"Hot Surface, check the area!!! = {tempMax} C")
                 print(message.sid)
                 with smtplib.SMTP(host=smtpServer, port=port,timeout=timeout) as server:
 
@@ -123,7 +129,7 @@ if __name__ == "__main__":
                         fromAddress = 'raspigroup15@gmail.com'
                         password = 'quqtojujdlqxszrr'
                         server.login(fromAddress, password)  # Your email address & password here
-                        htmlMessage = 'Hot surface'
+                        htmlMessage = 'Hot surface spotted'
                         subject = 'Possible Fire'
                         message = MIMEMultipart("alternative")
                         message["Subject"] = subject
@@ -136,14 +142,28 @@ if __name__ == "__main__":
                                 message.attach(part2)
                                 recipients='sergeykunaev94@gmail.com'
                                 server.sendmail(fromAddress,recipients,message.as_string())
-
  
         else:
-                print(f"spot average = {temp} C")
-                print(f"Temperature Max= {tempMax} C")
-                print(f"Temperature Min= {tempMin} C")
-        time.sleep(10)
-        break
+            print(f"Temperature Max= {tempMax} C")
+            print(f"spot average = {temp} C")
+            print(f"Temperature Min= {tempMin} C")
+        if GPIO.input(4):
+            pass
+        else:
+            print("GAS leak")
+            account_sid = "AC31331230a20f77ec7624c5e38311cea6"
+                # Your Auth Token from twilio.com/console
+            auth_token  = "7a93ef0412569dcc84ea0289247c6e9f"
+            client = Client(account_sid, auth_token)
+            message = client.messages.create(
+                to="+15615631884",
+                from_="+16815324346",
+                body=f"GAS LEAK")
+            auth_token  = "7a93ef0412569dcc84ea0289247c6e9f"
+            
+        time.sleep(1)
+        
     
+
 
 
