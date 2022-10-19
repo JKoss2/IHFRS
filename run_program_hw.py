@@ -33,6 +33,7 @@ if __name__ == "__main__":
     stat = cam.connect()
     if stat["status"] != "connected":
         print(f"Could not connect to Tcam")
+        notification.notification(f"Camera disconnected, check connection!", f"Camera disconnected")
         cam.shutdown()
         while True:
             if GPIO.input(4):
@@ -66,6 +67,7 @@ if __name__ == "__main__":
         stat = cam.connect()
         if stat["status"] != "connected":
             print(f"Could not connect to Tcam")
+            notification.notification(f"Camera disconnected, check connection!", f"Camera disconnected")
             cam.shutdown()
             while True:
                 if GPIO.input(4):
@@ -116,7 +118,7 @@ if __name__ == "__main__":
                 print(f"Temperature Max= {tempMax} C")
                 print(f"Temperature Min= {tempMin} C")
                 print(f"Temperature spot= {temp} C")
-                notification.notification(f"Fire= {tempMax} C", f"Fire")
+                notification.notification(f"Hot spot detected, please check the area!!! Max temperature = {tempMax} C", f"Fire")
  
         else:
             print(f"Temperature Max= {tempMax} C")
