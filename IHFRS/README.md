@@ -28,6 +28,9 @@ This directory contains **almost** all of the files and libraries needed to make
       * `pip3 install HAP-python[QRCode]`
    3. PIL.ImageTK
       * `sudo apt-get install python3-pil python3-pil.imagetk`
+7. Make the necessary hardware connections. Pictures are shown at the very bottom of this README.
+   * TCAM hardware connection (**5V, GND, TXD0, RXD0, SPI0_MISO, SPI0_CE0, SPI0_CLK**)
+   * MQ2 Sensor connection (**5V, GND, GPIO4**)
 
 
 ## Detailed Usage
