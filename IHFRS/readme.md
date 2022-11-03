@@ -1,29 +1,42 @@
-## tCam-Mini Python Driver
-Todd LaWall (bitreaper) wrote a python 3 driver to allow access to tCam and tCam-Mini from python programs.  The driver supports accessing tCam and tCam-Mini via the network socket interface and also supports accessing tCam-Mini via the hardware Slave Interface on a Raspberry Pi.
+# Integrated Home Fire Recognition System
+This directory contains **almost** all of the files and libraries needed to make the software run as intended. The following steps must be taken first before it can be expected to run as intended.
 
-### tcam.py
+## TLDR
+1. On the SD card for your Raspberry Pi, **install Raspbian OS**
+2. Before ejecting SD card from computer, edit `/boot/cmdline.txt`
+   1. At the end of the first line, add **one space** and the following text, then save and eject:
+    
+      * ```spidev.bufsiz=65536```
+3. Insert SD card and boot RPI.
+   1. Set country, language, etc.
+   2. Add username and password (pi, rpi)
+   3. Add WIFI network
+4. Once on home screen, open terminal
+   1. `sudo raspi-config`
+      * Under _Interface Options_:
+        1. Enable I2C
+        2. Enable Serial
+           - **NO** to "Login shell over serial?"
+           - **YES** to "Serial port hardware enable?"
+        3. Enable SPI
+        4. Enable SSH (optional)
+5. Now upload the IHFRS folder to your home directory (ex. `/home/pi/`)
+6. INSTALL THE FOLLOWING LIBRARIES:
+   1. Avahi
+      * `sudo apt-get install libavahi-compat-libdnssd-dev`
+   2. HAP-Python
+      * `pip3 install HAP-python[QRCode]`
+   3. PIL.ImageTK
+      * `sudo apt-get install python3-pil python3-pil.imagetk`
+
+
+## Detailed Usage
+
+#### tcam.py
 The ```tcam.py``` file contains an object ```TCam``` used to connect to and communicate with a camera.  It manages the network socket or direct hardware connection and provides an API for sending commands to the camera and for receiving responses back from the camera.  It uses three queues to handle the asynchronous nature of the interface.  A command queue is used for outgoing commands to the camera.  Responses from the camera are pushed into two incoming queues.  Image responses are stored in a special image queue.  All other responses are stored in a response queue.  The API hides queue operation.  API operations are single threaded and do not return until a response is returned or a timeout expires.  All response packets are presented as a python dictionary built from the json response string.
 
-### ioctl\_numbers.py
+#### ioctl\_numbers.py
 The ```ioctl_numbers.py``` includes helpers for use when communicating with tCam-Mini via the hardware interface.  It must be included with ```tcamp.py```.
-
-#### Network Usage
-Include the TCam object from ```tcam.py``` file in your program.
-
-	from tcam import TCam
-
-Create a reference.
-
-	cam = TCam()
-
-Open a connection to the camera.
-
-	cam.connect(<ip_address>)
-
-where ```<ip_address>``` is the camera's IP address as a string.  The connect method returns a response indicating of the connection was successful or not.
-
-	{"status": "timeout"}
-	{"status": "connected"}
 
 #### Hardware Interface Usage
 See below for a diagram showing how to connect the tCam-Mini hardware Slave Interface to the Raspberry Pi default serial and SPI ports.
@@ -31,7 +44,7 @@ See below for a diagram showing how to connect the tCam-Mini hardware Slave Inte
 Use the Raspberry Pi Configuration tool to enable the serial interface (make sure the console on that port is disabled) and the SPI port.  Increase the maximum SPI transfer the Pi can perform by editing the ```/boot/cmdline.txt``` file and add the following string to the end of the line in that file.  Reboot the Pi after making this change.
 
 	spidev.bufsiz=65536
-	
+
 Include the TCam object from ```tcam.py``` file in your program.
 
 	from tcam import TCam
@@ -48,7 +61,7 @@ To use alternate Pi hardware, specify the device files in the connect method.
 
 	cam.connect(spiFile='/dev/spidev0.1', serialFile='/dev/serial1')
 	
-### Common API
+#### Common API
 A common API is used to access and control the attached camera.
 
 Many API calls take an optional timeout value which specify the number of seconds to wait for a response when using the socket interface.  By default the timeout value is 10 seconds.
