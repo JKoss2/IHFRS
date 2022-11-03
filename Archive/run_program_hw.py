@@ -3,58 +3,39 @@
 # Print spot meter value
 #
 
-import argparse
 import array
 import base64
 from tcam import TCam
-import sys
 import time
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import ssl
-import smtplib
-from twilio.rest import Client
 import RPi. GPIO as GPIO
 import notification
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(4, GPIO.IN)
 
-
-parser = argparse.ArgumentParser()
-
-parser.prog = "disp_spot"
-parser.description = f"{parser.prog} - an example program to print the spotmeter value from the CCI interface\n"
-parser.usage = "disp_spot.py [--ip=<ip address of camera>]"
-parser.add_argument("-i", "--ip", help="IP address of the camera")
-
 if __name__ == "__main__":
 
     #
     # Parse command line
-    #
-    args = parser.parse_args()
-
-    if not args.ip:
-        ip = "192.168.99.127"
     
-    else:
-        ip = args.ip
 
     #
     # Connect to tCam
     #
-    cam = TCam()
-    stat = cam.connect(ip)
+    cam = TCam(is_hw=True)
+    stat = cam.connect()
     if stat["status"] != "connected":
-        print(f"Could not connect to {ip}")
+        print(f"Could not connect to Tcam")
+        notification.notification(f"Camera disconnected, check connection!", f"Camera disconnected")
         cam.shutdown()
         while True:
             if GPIO.input(4):
+                print("Camera not connected")
                 print(f"Gas Check")
-            else: 
+            else:
+                
                 notification.notification(f"Gas leak", f"Gas leak")
-            time.sleep(1)
+            time.sleep(3)
             
         #sys.exit()
     
@@ -76,16 +57,18 @@ if __name__ == "__main__":
     #    1    : Response[31:16]
     #
     while True:
-        stat = cam.connect(ip)
+        stat = cam.connect()
         if stat["status"] != "connected":
-            print(f"Could not connect to {ip}")
+            print(f"Could not connect to Tcam")
+            notification.notification(f"Camera disconnected, check connection!", f"Camera disconnected")
             cam.shutdown()
             while True:
                 if GPIO.input(4):
+                    print("Camera not connected") 
                     print("Gas check")
                 else:
                     notification.notification(f"Gas leak", f"Gas leak")
-                time.sleep(1)
+                time.sleep(3)
         rsp_vals = rsp["cci_reg"]
         dec_data = base64.b64decode(rsp_vals["data"])
         reg_array = array.array('H', dec_data)
@@ -96,7 +79,7 @@ if __name__ == "__main__":
         
         
 
-       # print(f"T-Linear resolution = {res}")
+        print(f"T-Linear resolution = {res}")
     
     #
     # Request the RAD Spotmeter Value (RAD 0xED0)
@@ -123,26 +106,27 @@ if __name__ == "__main__":
         tempMax = (reg_array[1] / (1/ res)) - 273.15
         tempMin = (reg_array[2] / (1/ res)) - 273.15
         
-        if tempMax>25:   
+        if tempMax>40:   
                 print(f"HOT DETECTED!!!")
                 print(f"Temperature Max= {tempMax} C")
                 print(f"Temperature Min= {tempMin} C")
                 print(f"Temperature spot= {temp} C")
-                notification.notification(f"Fire= {tempMax} C", f"Fire")
+                notification.notification(f"Hot spot detected, please check the area!!! Max temperature = {tempMax} C", f"Fire")
  
         else:
             print(f"Temperature Max= {tempMax} C")
             print(f"spot average = {temp} C")
             print(f"Temperature Min= {tempMin} C")
         if GPIO.input(4):
-            pass
+            print("Gas check")
         else:
             notification.notification(f"Gas leak", f"Gas leak")
 
             
-        time.sleep(1)
+        time.sleep(3)
         
     
+
 
 
 

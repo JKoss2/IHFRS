@@ -14,9 +14,9 @@ def main():
         if (gas_sensor.Gas(GPIO)):
             notification.notification(f"Gas leak", f"Gas leak")
         #tempMax=cam.camera(cam2)
-        tempMax=camera_hw.get_data(cam)
+        tempMax= camera_hw.get_data(cam)
         if tempMax !=False:  #(camera_hw.get_data(cam))
-            notification.notification(f"Hot Surface, check the area!!!"+str(tempMax)+"C",f"Fire") #
+            notification.notification(f"Hot Surface, check the area!!!" + str(tempMax) + "C", f"Fire") #
         
         
         time.sleep(1)
