@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block title %}IHFRS Status{% endblock %}
+
+{% block head %}
+    {{super() }}
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-evenly">
+        <div class="col-sm-6">
+            <div class="card mx-auto mb-1">
+                <h5 class="card-title">Apple Homekit QR Code</h5>
+                <div class="card-body">
+                    <img class="card-img-top text-center" src="{{ url_for('video_stream') }}" alt="HomeKit QR Code">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card mx-auto mb-1">
+                <h5 class="card-title">IHFRS Image/Steam</h5>
+                <div class="card-body">
+                    <img class="card-img-top text-center" src="{{ url_for('video_stream') }}" alt="IHFRS Video Stream">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-evenly">
+        <div class="col-sm-6">
+            <div class="card mx-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card mx-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

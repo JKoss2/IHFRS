@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Main Imports TODO: Move imports to __init.py?
+# Main Imports TODO: Move imports to __init__.py?
 import logging
 import os
 import signal
@@ -38,6 +38,9 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(SMOKEPIN, GPIO.IN)
 
 # Declare and initialize global variables FIXME: Pass updated parameters/values between processes. Use Queue for this
+smokeProcess = None
+tcamProcess = None
+hkProcess = None
 temp = 0
 smokeStatus = 0
 
