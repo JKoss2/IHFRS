@@ -5,24 +5,17 @@ from configparser import ConfigParser
 
 config = ConfigParser()
 
-# These settings are used when device is "Factory Reset".
-config["FACTORY_DEFAULT"] = {
-    "smokeSensitivity": "20",
-    "tempLimit1": "60",
-    "tempLimit2": "100"
-
+# Settings for Homekit Process.
+config["HomekitSettings"] = {
+    "port": "33864"
 }
 
-# Used when "Default" settings are called.
-config["DEFAULT"] = {
-    "smokeSensitivity": "20",
-    "tempLimit1": "60",
-    "tempLimit2": "100"
-
+# Settings for TCAM Process.
+config["TCAMSettings"] = {
+    "tempAlertValue": "100",
 }
 
 # Creates INI file.
 with open('config.ini', 'w') as conf:
     config.write(conf)
 
-# TODO: Add all settings and appropriate values.

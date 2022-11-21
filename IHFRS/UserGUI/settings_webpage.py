@@ -40,16 +40,16 @@ def catch_all(path):
     return redirect('/')
 
 
-def main():
+def user_gui_main():
     app.debug = False
-    app.run(host='0.0.0.0', port='4000')
+    app.run(host='0.0.0.0', port='4000') # TODO: Make run on main port
 
 
-if __name__ == '__main__':
-
-    try:
-        webServerProcess = Process(target=main)
-        webServerProcess.start()
-    except KeyboardInterrupt:
-        webServerProcess.terminate()
-        print("Terminated")
+# if __name__ == '__main__':
+#
+#     try:
+#         webServerProcess = Process(target=main)
+#         webServerProcess.start()
+#     except KeyboardInterrupt:
+#         webServerProcess.terminate()
+#         print("Terminated")

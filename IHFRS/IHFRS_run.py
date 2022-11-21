@@ -8,7 +8,7 @@ import sys
 import time
 
 # Multi-Processing Related Imports
-from multiprocessing import Event, Process, Queue
+from multiprocessing import Event, Process, Queue, Value
 
 # TCAM Related Imports
 import argparse
@@ -24,6 +24,12 @@ from pyhap.const import CATEGORY_SENSOR
 # Smoke Sensor Related Imports
 import RPi.GPIO as GPIO
 
+# Setting File Config/Reader
+from configparser import ConfigParser
+
+# Settings Webpage Module
+from UserGUI.settings_webpage import user_gui_main
+
 # Other Imports
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -32,86 +38,15 @@ import smtplib
 # from twilio.rest import Client
 # import notification
 
-# Setup for Smoke Sensor
-SMOKEPIN = 4
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(SMOKEPIN, GPIO.IN)
 
-# Declare and initialize global variables FIXME: Pass updated parameters/values between processes. Use Queue for this
+# Declare and initialize variables
 smokeProcess = None
 tcamProcess = None
 hkProcess = None
-temp = 0
-smokeStatus = 0
+webSettingsProcess = None
 
 
-# Logger Setup
-def init_logger():
-    logger_format = "%(asctime)s %(levelname)-8.8s [%(funcName)24s():%(lineno)-3s] %(message)s"
-    formatter = logging.Formatter(logger_format)
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    return logger
-
-
-logger = init_logger()
-
-# Main SIGINT / SIGTERM Handlers
-main_stop_event = Event()
-
-# TODO: Add SIGTERM / SIGINT Handlers
-def main_sigint_handler(signum, frame):
-    logger.debug('')
-    main_stop_event.set()
-
-
-def main_sigterm_handler(signum, frame):
-    logger.debug('')
-    main_stop_event.set()
-
-
-# Children SIGINT / SIGTERM Handlers (let Main process handle this)
-def children_sigint_handler(signum, frame):
-    logger.debug('')
-
-
-def children_sigterm_handler(signum, frame):
-    logger.debug('')
-
-
-def stop_procs(self):  # TODO: Add graceful shutdowns
-
-    self.shutdown_event.set()
-
-    end_time = time.time() + self.STOP_WAIT_SECS
-    num_terminated = 0
-    num_failed = 0
-
-    # -- Wait up to STOP_WAIT_SECS for all processes to complete
-    for proc in self.procs:
-        join_secs = max(0.0, min(end_time - time.time(), STOP_WAIT_SECS))
-        proc.proc.join(join_secs)
-
-    # -- Clear the procs list and _terminate_ any procs that
-    # have not yet exited
-    while self.procs:
-        proc = self.procs.pop()
-        if proc.proc.is_alive():
-            proc.terminate()
-            num_terminated += 1
-        else:
-            exitcode = proc.proc.exitcode
-            if exitcode:
-                num_failed += 1
-
-    return num_failed, num_terminated
-
-
-class IHFRSSensor(Accessory):  # TODO: Move to module
+class IHFRSSensor(Accessory):
 
     category = CATEGORY_SENSOR
 
@@ -126,40 +61,62 @@ class IHFRSSensor(Accessory):  # TODO: Move to module
 
     @Accessory.run_at_interval(5)
     async def run(self):
-        self.temp_char.set_value(temp)
-        self.smoke_char.set_value(smokeStatus)
+        self.temp_char.set_value(shTemp.value)
+        self.smoke_char.set_value(shSmoke.value)
 
 
 def get_accessory(driver):
     return IHFRSSensor(driver, 'IHFRS')
 
 
-def homekit_process():  # TODO: Move to module
-    driver = AccessoryDriver(port=34985)
+def web_process():
+    while True:
+        time.sleep(5)
+        break
+
+
+def homekit_process():
+    # Setup Preference Reader
+    config_reader = ConfigParser()
+    config_reader.read("config.ini")
+
+    # homekit_settings = config_reader["HomekitSettings"]
+    # hk_port = homekit_settings["port"]
+
+    driver = AccessoryDriver(port=34985)  # TODO: Uncomment 2 lines above and change to variable
     driver.add_accessory(accessory=get_accessory(driver))
     signal.signal(signal.SIGTERM, driver.signal_handler)
     driver.start()
 
 
 def smoke_process():  # TODO: Move to module
-    while not shutdown_event.is_set():
-        try:
-            if GPIO.input(SMOKEPIN):
-                smokeStatus = 0
-                print("Checking for Gas/Smoke")
-            elif GPIO.input(not SMOKEPIN):
-                smokeStatus = 1
-                print("SMOKE DETECTED!!!!")
-                print("SMOKE DETECTED!!!!")
-                print("SMOKE DETECTED!!!!")
-                #           Debounce for Smoke Detection
-                time.sleep(3)
-        except queue.Empty:
-            continue
+    # Setup for Smoke Sensor
+    SMOKEPIN = 4
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(SMOKEPIN, GPIO.IN)
+
+    while True:
+        if GPIO.input(SMOKEPIN) == GPIO.HIGH:
+            shSmoke.value = 0
+            print("Checking for Gas/Smoke")
+        elif GPIO.input(SMOKEPIN) == GPIO.LOW:
+            shSmoke.value = 1
+            print("SMOKE DETECTED!!!!")
+            print("SMOKE DETECTED!!!!")
+            print("SMOKE DETECTED!!!!")
+            #           Debounce for Smoke Detection
+            time.sleep(3)
         time.sleep(3)
 
 
-def tcam_process():  # TODO: Move to module
+def tcam_process():
+    # Setup Preference Reader
+    config_reader = ConfigParser()
+    config_reader.read("config.ini")
+
+    # TCAM_settings = config_reader["TCAMSettings"]
+    # alert_value = TCAM_settings["tempAlertValue"]
+
     #
     # Connect to tCam
     #
@@ -226,39 +183,46 @@ def tcam_process():  # TODO: Move to module
         # Convert the Spotmeter Value into degrees C
         #   Temp = (Spotmeter Value / (1 / T-Linear Resolution)) - 273.15
 
-        temp = (reg_array[0] / (1 / res)) - 273.15
-        tempMax = (reg_array[1] / (1 / res)) - 273.15
-        tempMin = (reg_array[2] / (1 / res)) - 273.15
+        temp_avg = (reg_array[0] / (1 / res)) - 273.15
+        temp_max = (reg_array[1] / (1 / res)) - 273.15
+        temp_min = (reg_array[2] / (1 / res)) - 273.15
 
-        if tempMax > 40:
+        shTemp.value = temp_max
+        shAlarm.value = 0
+
+        print(f"Temperature Max= {temp_max} C")
+        print(f"Temperature Min= {temp_min} C")
+        print(f"Temperature spot= {temp_avg} C")
+
+        alert_value = 40
+        if temp_max >= alert_value:  # TODO: Uncomment 2 lines at top and change to variable
+            shAlarm.value = 1
             print(f"HOT DETECTED!!!")
-            print(f"Temperature Max= {tempMax} C")
-            print(f"Temperature Min= {tempMin} C")
-            print(f"Temperature spot= {temp} C")
-            # notification.notification(f"Hot spot detected, please check the area!!! Max temperature = {tempMax} C", f"Fire")
-
-        else:
-            print(f"Temperature Max= {tempMax} C")
-            print(f"spot average = {temp} C")
-            print(f"Temperature Min= {tempMin} C")
 
         time.sleep(3)
 
 
 if __name__ == "__main__":
     try:
-        # Define Processes
+        shTemp = Value('d', 0.00)
+        shSmoke = Value('i', 0)
+        shAlarm = Value('i', 0)
+
+        # Define Processes'
         smokeProcess = Process(target=smoke_process)
         tcamProcess = Process(target=tcam_process)
         hkProcess = Process(target=homekit_process)
+        webSettingsProcess = Process(target=user_gui_main)
 
         # Start Processes
         smokeProcess.start()
         tcamProcess.start()
         hkProcess.start()
+        webSettingsProcess.start()
 
     except KeyboardInterrupt:
         smokeProcess.terminate()
         tcamProcess.terminate()
         hkProcess.terminate()
+        webSettingsProcess.terminate()
         print("Interrupted.")
