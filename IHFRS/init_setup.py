@@ -1,7 +1,7 @@
 # Run this file to set up the device defaults for IHFRS.
 import os
 import sys
-import init_files.dev_setup_lib
+from init_files import dev_setup_lib
 
 if os.getuid():
     sys.exit('You need root access to install')
@@ -39,12 +39,11 @@ print()
 print()
 install_ans = input("Are you ready to commit changes to the system? [y/N]: ")
 
-
 if install_ans.lower() == 'y':
-    setup_lib.install_prereqs()
-    setup_lib.copy_configs(wpa_enabled_choice)
-    setup_lib.update_main_config_file(entered_ssid, auto_config_choice, auto_config_delay, ssl_enabled_choice,
-                                      server_port_choice, wpa_enabled_choice, wpa_entered_key)
+    dev_setup_lib.install_prereqs()
+    dev_setup_lib.copy_configs(wpa_enabled_choice)
+    dev_setup_lib.update_main_config_file(entered_ssid, auto_config_choice, auto_config_delay, ssl_enabled_choice,
+                                          server_port_choice, wpa_enabled_choice, wpa_entered_key)
 
 else:
     print()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Main Imports TODO: Move imports to __init__.py?
+# Main Imports
 import logging
 import os
 import signal
@@ -30,13 +30,8 @@ from configparser import ConfigParser
 # Settings Webpage Module
 from UserGUI.settings_webpage import user_gui_main
 
-# Other Imports
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import ssl
-import smtplib
-# from twilio.rest import Client
-# import notification
+# SMS Notifications
+from notification import notification
 
 
 # Declare and initialize variables
@@ -69,27 +64,28 @@ def get_accessory(driver):
     return IHFRSSensor(driver, 'IHFRS')
 
 
-def web_process():
-    while True:
-        time.sleep(5)
-        break
-
-
 def homekit_process():
     # Setup Preference Reader
     config_reader = ConfigParser()
     config_reader.read("config.ini")
 
-    # homekit_settings = config_reader["HomekitSettings"]
-    # hk_port = homekit_settings["port"]
+    homekit_settings = config_reader["HomekitSettings"]
+    hk_port = int(homekit_settings["port"])
 
-    driver = AccessoryDriver(port=34985)  # TODO: Uncomment 2 lines above and change to variable
+    driver = AccessoryDriver(port=hk_port)  # TODO: Uncomment 2 lines above and change to variable
     driver.add_accessory(accessory=get_accessory(driver))
     signal.signal(signal.SIGTERM, driver.signal_handler)
     driver.start()
 
 
 def smoke_process():  # TODO: Move to module
+    # Setup Preference Reader
+    config_reader = ConfigParser()
+    config_reader.read("config.ini")
+
+    text_settings = config_reader["SMSEnable"]
+    sms_enabled = text_settings["SMSEnabled"]
+
     # Setup for Smoke Sensor
     SMOKEPIN = 4
     GPIO.setmode(GPIO.BCM)
@@ -102,9 +98,9 @@ def smoke_process():  # TODO: Move to module
         elif GPIO.input(SMOKEPIN) == GPIO.LOW:
             shSmoke.value = 1
             print("SMOKE DETECTED!!!!")
-            print("SMOKE DETECTED!!!!")
-            print("SMOKE DETECTED!!!!")
-            #           Debounce for Smoke Detection
+            if sms_enabled == 'True':
+                notification("Smoke has been detected by IHFRS!", "Smoke Detected!")
+            # Debounce for Smoke Detection
             time.sleep(3)
         time.sleep(3)
 
@@ -114,8 +110,8 @@ def tcam_process():
     config_reader = ConfigParser()
     config_reader.read("config.ini")
 
-    # TCAM_settings = config_reader["TCAMSettings"]
-    # alert_value = TCAM_settings["tempAlertValue"]
+    TCAM_settings = config_reader["TCAMSettings"]
+    alert_value = int(TCAM_settings["tempAlertValue"])
 
     #
     # Connect to tCam
@@ -124,7 +120,7 @@ def tcam_process():
     stat = cam.connect()
     if stat["status"] != "connected":
         print(f"Could not connect to Tcam")
-        #         notification.notification(f"Camera disconnected, check connection!", f"Camera disconnected")
+        # notification.notification(f"Camera disconnected, check connection!", f"Camera disconnected")
         cam.shutdown()
 
         # sys.exit()
@@ -194,11 +190,9 @@ def tcam_process():
         print(f"Temperature Min= {temp_min} C")
         print(f"Temperature spot= {temp_avg} C")
 
-        alert_value = 40
-        if temp_max >= alert_value:  # TODO: Uncomment 2 lines at top and change to variable
+        if temp_max >= alert_value:
             shAlarm.value = 1
             print(f"HOT DETECTED!!!")
-
         time.sleep(3)
 
 
