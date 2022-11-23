@@ -83,8 +83,9 @@ def smoke_process():  # TODO: Move to module
     config_reader = ConfigParser()
     config_reader.read("config.ini")
 
-    text_settings = config_reader["SMSEnable"]
-    sms_enabled = text_settings["SMSEnabled"]
+    notif_settings = config_reader["SMSEmailEnable"]
+    sms_enabled = notif_settings["SMSEnabled"]
+    email_enabled = notif_settings["EmailEnabled"]
 
     # Setup for Smoke Sensor
     SMOKEPIN = 4
@@ -98,8 +99,7 @@ def smoke_process():  # TODO: Move to module
         elif GPIO.input(SMOKEPIN) == GPIO.LOW:
             shSmoke.value = 1
             print("SMOKE DETECTED!!!!")
-            if sms_enabled == 'True':
-                notification("Smoke has been detected by IHFRS!", "Smoke Detected!")
+            notification(sms_enabled, email_enabled, "Smoke has been detected by IHFRS!", "Smoke Detected!")
             # Debounce for Smoke Detection
             time.sleep(3)
         time.sleep(3)
