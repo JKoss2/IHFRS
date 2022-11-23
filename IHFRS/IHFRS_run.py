@@ -72,7 +72,7 @@ def homekit_process():
     homekit_settings = config_reader["HomekitSettings"]
     hk_port = int(homekit_settings["port"])
 
-    driver = AccessoryDriver(port=hk_port)  # TODO: Uncomment 2 lines above and change to variable
+    driver = AccessoryDriver(port=hk_port)
     driver.add_accessory(accessory=get_accessory(driver))
     signal.signal(signal.SIGTERM, driver.signal_handler)
     driver.start()
