@@ -1,7 +1,11 @@
 import os
+import sys
 
 
 def install_prereqs():
+    is_64bits = sys.maxsize > 2 ** 32
+    is_armv7 = os.uname()[4] == "armv7l"
+
     os.system('clear')
     os.system('apt update')
     os.system('clear')
@@ -16,8 +20,17 @@ def install_prereqs():
     os.system('apt install python3 python3-rpi.gpio python3-pip python3-pil python3-pil.imagetk dnsmasq hostapd '
               'libavahi-compat-libdnssd-dev -y')
     os.system('clear')
+    print("Upgrading pip...")
+    os.system('pip3 install --upgrade pip')
+    os.system('clear')
+    print("Trying to install HAP-python...")
+    if is_64bits or is_armv7:
+        os.system('pip3 install HAP-python[QRCode]')
+    else:
+        print("You're using armv6l, HAP-python can't be used :( , moving on...")
+    os.system('clear')
     print("Installing pip libraries...")
-    os.system('pip3 install twilio flask pyOpenSSL HAP-python[QRCode]')
+    os.system('pip3 install twilio flask pyOpenSSL')
     os.system('clear')
     print("Installing PiWiFi_Setup...")
     os.system('apt install /home/pi/IHFRS/PiWiFiSetup_0.0.5/pi-wifi-setup_0.0.5_all.deb')

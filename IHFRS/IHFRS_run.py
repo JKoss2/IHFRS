@@ -78,7 +78,7 @@ def homekit_process():
     driver.start()
 
 
-def smoke_process():  # TODO: Move to module
+def smoke_process():
     # Setup Preference Reader
     config_reader = ConfigParser()
     config_reader.read("config.ini")
@@ -197,6 +197,8 @@ def tcam_process():
 
 
 if __name__ == "__main__":
+    is_64bits = sys.maxsize > 2 ** 32
+    is_armv7 = os.uname()[4] == "armv7l"
     try:
         shTemp = Value('d', 0.00)
         shSmoke = Value('i', 0)
@@ -211,8 +213,9 @@ if __name__ == "__main__":
         # Start Processes
         smokeProcess.start()
         tcamProcess.start()
-        hkProcess.start()
         webSettingsProcess.start()
+        if is_64bits or is_armv7:
+            hkProcess.start()
 
     except KeyboardInterrupt:
         smokeProcess.terminate()
