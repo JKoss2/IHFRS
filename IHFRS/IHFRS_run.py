@@ -7,6 +7,10 @@ import signal
 import sys
 import time
 
+# Check for stuff
+is_64bits = sys.maxsize > 2 ** 32
+is_armv7 = os.uname()[4] == "armv7l"
+
 # Multi-Processing Related Imports
 from multiprocessing import Event, Process, Queue, Value
 
@@ -17,9 +21,10 @@ import base64
 from tcam import TCam
 
 # HomeKit Integration Related Imports
-from pyhap.accessory import Accessory, Bridge
-from pyhap.accessory_driver import AccessoryDriver
-from pyhap.const import CATEGORY_SENSOR
+if is_64bits or is_armv7:
+    from pyhap.accessory import Accessory, Bridge
+    from pyhap.accessory_driver import AccessoryDriver
+    from pyhap.const import CATEGORY_SENSOR
 
 # Smoke Sensor Related Imports
 import RPi.GPIO as GPIO
@@ -197,8 +202,7 @@ def tcam_process():
 
 
 if __name__ == "__main__":
-    is_64bits = sys.maxsize > 2 ** 32
-    is_armv7 = os.uname()[4] == "armv7l"
+
     try:
         shTemp = Value('d', 0.00)
         shSmoke = Value('i', 0)

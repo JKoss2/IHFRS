@@ -36,7 +36,7 @@ else:
     print()
     sys.exit()
 
-os.system('clear')
+
 print()
 print()
 print("#####################################")
