@@ -7,10 +7,6 @@ import signal
 import sys
 import time
 
-# Check for stuff
-is_64bits = sys.maxsize > 2 ** 32
-is_armv7 = os.uname()[4] == "armv7l"
-
 # Multi-Processing Related Imports
 from multiprocessing import Event, Process, Queue, Value
 
@@ -19,12 +15,6 @@ import argparse
 import array
 import base64
 from tcam import TCam
-
-# HomeKit Integration Related Imports
-if is_64bits or is_armv7:
-    from pyhap.accessory import Accessory, Bridge
-    from pyhap.accessory_driver import AccessoryDriver
-    from pyhap.const import CATEGORY_SENSOR
 
 # Smoke Sensor Related Imports
 import RPi.GPIO as GPIO
@@ -38,6 +28,15 @@ from UserGUI.settings_webpage import user_gui_main
 # SMS Notifications
 from notification import notification
 
+# Check for stuff
+is_64bits = sys.maxsize > 2 ** 32
+is_armv7 = os.uname()[4] == "armv7l"
+
+# HomeKit Integration Related Imports
+if is_64bits or is_armv7:
+    from pyhap.accessory import Accessory, Bridge
+    from pyhap.accessory_driver import AccessoryDriver
+    from pyhap.const import CATEGORY_SENSOR
 
 # Declare and initialize variables
 smokeProcess = None
