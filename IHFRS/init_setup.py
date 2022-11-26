@@ -18,8 +18,12 @@ install_ans = input("Are you ready to commit changes to the system? [y/N]: ")
 
 if install_ans.lower() == 'y':
     dev_setup_lib.install_prereqs()
-    dev_setup_lib.add_buf_to_cmdline()
-    dev_setup_lib.configure_initial_files()
+    print()
+    dev_setup_lib.configure_cmdline()
+    print()
+    dev_setup_lib.configure_boot()
+    print()
+
 
 
 else:
