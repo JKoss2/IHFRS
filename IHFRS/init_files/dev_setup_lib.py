@@ -1,6 +1,6 @@
 import os
 import sys
-
+import re
 
 def install_prereqs():
     is_64bits = sys.maxsize > 2 ** 32
