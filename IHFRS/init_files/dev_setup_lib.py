@@ -24,7 +24,7 @@ def install_prereqs():
     os.system('pip3 install --upgrade pip')
     print("-----------------------------------------------------------")
     print("Installing pip libraries...")
-    os.system('pip3 install pyOpenSSL twilio flask')
+    os.system('pip3 install pyOpenSSL cryptography==38.0.1 twilio flask pyserial')
     print("-----------------------------------------------------------")
     print("Trying to install HAP-python...")
     if is_64bits or is_armv7:
@@ -33,7 +33,8 @@ def install_prereqs():
         print("You're using armv6l, HAP-python can't be used :( , moving on...")
     print("-----------------------------------------------------------")
     print("Installing PiWiFi_Setup...")
-    os.system('apt install /home/pi/IHFRS/PiWiFiSetup_0.0.5/pi-wifi-setup_0.0.5_all.deb')
+    os.system('apt install /home/pi/IHFRS/PiWiFiSetup_0.0.5/pi-wifi-setup_0.0.5_all.deb -y')
+    os.system('apt autoremove')
     print("-----------------------------------------------------------")
     print("---------------------------------------------------")
     print()
