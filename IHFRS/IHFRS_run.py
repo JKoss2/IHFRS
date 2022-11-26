@@ -31,9 +31,8 @@ from notification import notification
 # Check for stuff
 is_64bits = sys.maxsize > 2 ** 32
 is_armv7 = os.uname()[4] == "armv7l"
-
-# HomeKit Integration Related Imports
 if is_64bits or is_armv7:
+    # Homekit
     from pyhap.accessory import Accessory, Bridge
     from pyhap.accessory_driver import AccessoryDriver
     from pyhap.const import CATEGORY_SENSOR
@@ -45,23 +44,24 @@ hkProcess = None
 webSettingsProcess = None
 
 
-class IHFRSSensor(Accessory):
+if is_64bits or is_armv7:
+    class IHFRSSensor(Accessory):
 
-    category = CATEGORY_SENSOR
+        category = CATEGORY_SENSOR
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Add the services that this Accessory will support with add_preload_service here
-        temp_service = self.add_preload_service('TemperatureSensor')
-        smoke_service = self.add_preload_service('SmokeSensor')
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # Add the services that this Accessory will support with add_preload_service here
+            temp_service = self.add_preload_service('TemperatureSensor')
+            smoke_service = self.add_preload_service('SmokeSensor')
 
-        self.temp_char = temp_service.get_characteristic('CurrentTemperature')
-        self.smoke_char = smoke_service.get_characteristic('SmokeDetected')
+            self.temp_char = temp_service.get_characteristic('CurrentTemperature')
+            self.smoke_char = smoke_service.get_characteristic('SmokeDetected')
 
-    @Accessory.run_at_interval(5)
-    async def run(self):
-        self.temp_char.set_value(shTemp.value)
-        self.smoke_char.set_value(shSmoke.value)
+        @Accessory.run_at_interval(2)
+        async def run(self):
+            self.temp_char.set_value(shTemp.value)
+            self.smoke_char.set_value(shSmoke.value)
 
 
 def get_accessory(driver):
@@ -124,7 +124,6 @@ def tcam_process():
     stat = cam.connect()
     if stat["status"] != "connected":
         print(f"Could not connect to Tcam")
-        # notification.notification(f"Camera disconnected, check connection!", f"Camera disconnected")
         cam.shutdown()
 
         # sys.exit()
@@ -196,6 +195,7 @@ def tcam_process():
 
         if temp_max >= alert_value:
             shAlarm.value = 1
+            shSmoke.value = 1
             print(f"HOT DETECTED!!!")
         time.sleep(3)
 
