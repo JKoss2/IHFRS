@@ -1,0 +1,13 @@
+[Unit]
+Description = IHFRS-Service daemon
+Wants = pigpiod.service 
+After = local-fs.target network-online.target pigpiod.service
+
+[Service]
+WorkingDirectory=/home/pi/IHFRS
+User=pi
+ExecStart = /usr/bin/python3 /home/pi/IHFRS/IHFRS_run.py
+Restart=always
+
+[Install]
+WantedBy = multi-user.target

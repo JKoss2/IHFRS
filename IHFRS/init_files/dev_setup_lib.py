@@ -158,6 +158,36 @@ def configure_boot():
     print()
 
 
-
+def configure_as_service():
+    print()
+    print("---------------------------------------------------")
+    print()
+    print("Configuring IHFRS to run automatically on restart...")
+    print()
+    print("---------------------------------------------------")
+    print()
+    if os.path.isdir('/etc/systemd/system'):
+        if not os.path.isfile('/etc/systemd/system/IHFRS.service'):
+            print("Coping IHFRS service file and enabling service...")
+            os.system('cp init_files/IHFRS.service /etc/systemd/system/IHFRS.service')
+            os.system('systemctl enable IHFRS.service')
+            out = os.popen('systemctl is-enabled IHFRS').read()
+            if "enabled" in out:
+                print("IHFRS Successfully Enabled")
+            elif "disabled" in out:
+                print("IHFRS was not successfully enabled... Please manually enable with `sudo systemctl enable IHFRS.`")
+            else:
+                print("`systemctl is-enabled IHFRS` returned abnormal response...")
+        else:
+            print("IHFRS.service already exists, moving on...")
+    else:
+        print("!!! ERROR !!! Systemd directory is not where it is expected. Cannot add IHFRS as service at this time.")
+    print()
+    print("---------------------------------------------------")
+    print()
+    print("IHFRS Service Configuration COMPLETE!")
+    print()
+    print("---------------------------------------------------")
+    print()
 
 
