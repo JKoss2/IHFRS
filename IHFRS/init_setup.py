@@ -23,7 +23,8 @@ if install_ans.lower() == 'y':
     print()
     dev_setup_lib.configure_boot()
     print()
-
+    dev_setup_lib.configure_as_service()
+    print()
 
 
 else:
