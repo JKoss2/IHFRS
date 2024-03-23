@@ -1,6 +1,8 @@
-# IHFRS - Senior Design Team 12
+# IHFRS - Integrated Home Fire Recognition System
 
-This repository contains code and libraries for the project our senior design team has undertaken.
+The IHFRS is a smart-home camera that leverages the use of a FLIR Lepton 3.5 sensor to monitor a living area for abnormal spikes in temperature. It features native Apple Homekit integration and has a local web interface and WiFi host for setup.
+
+Future work for this project includes moving processing to an ESP32, integration with Matter (to easily support multiple smart-home ecosystems), the addition of machine learning to reduce false positives, and to offer more user-controlled settings via the GUI.
 
 **Installation**
 1. On the SD card for your Raspberry Pi, **install Raspbian OS Lite**. (You must choose 32-bit if using Pi Zero W, read below)
